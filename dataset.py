@@ -2,13 +2,10 @@ import os
 import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from PIL import Image
 import glob
 from torchvision import transforms, utils
 import random
 import pretty_midi
-from torchvision.transforms import Compose, RandomCrop, ToTensor, ToPILImage, CenterCrop, Resize
-import matplotlib.pyplot as plt
 
 
 class MidiDataset(Dataset):
@@ -24,7 +21,6 @@ class MidiDataset(Dataset):
         else:
             self.transform = transform
         self.midi_datas = self.load_midi_files(os.path.join(data_path, '.38 Special'))
-        # self.fake_images = self.load_midi_files(os.path.join(data_path, 'fake'))
 
     def __len__(self):
         return self.size
@@ -42,19 +38,22 @@ class MidiDataset(Dataset):
         midis = []
 
         for filename in glob.glob(os.path.join(path, '*.mid')):
+            midi = {}
             # midis.append(filename)
             # print(filename)
             midi_data = pretty_midi.PrettyMIDI(filename)
             for i in midi_data.instruments:
                 one_hot_enc = self.convert_to_one_hot(i)
                 # print(one_hot_enc)
-                midis.append(one_hot_enc)
+                midi[i.name] = one_hot_enc
             # print(midi_data.instruments[0].notes)
+            midis.append(midi)
+
         return midis
 
     def convert_to_one_hot(self, instrument):
         notes = instrument.notes
-        # print(notes)
+        print(notes)
         num_notes = len(notes)
         max_notes = 1200
         max_keys = self.get_max_keys(notes)
@@ -65,6 +64,7 @@ class MidiDataset(Dataset):
         for i in range(num_notes):
             one_hot_enc[i, notes[i].pitch - 1] = 1
 
+        print(one_hot_enc.shape)
         return one_hot_enc
 
     def get_max_keys(self, notes):

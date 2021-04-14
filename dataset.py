@@ -35,7 +35,7 @@ class MidiDataset(Dataset):
                 for i in range(0, len(ts)):
                     midi[i, ts_idx, int(ts[i])] = 1
             midis.append(midi)
-        print(midis)
+            
         return midis
 
     def get_masked_data(self, midis):

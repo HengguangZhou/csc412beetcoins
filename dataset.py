@@ -1,80 +1,68 @@
-import os
 import torch
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
-import glob
-from torchvision import transforms, utils
-import random
-import pretty_midi
+import pickle
 
 
 class MidiDataset(Dataset):
-    def __init__(self, data_path, size=50000, transform=None):
+    def __init__(self, data_path, fold='train'):
         """
-        :param data_path: Root directory of the image data
+        :param data_path: file name of the pickle data to load midi info from
+        :param fold: either 'train', 'validate', or 'test'
         """
         self.data_path = data_path
-        self.size = size
-        if transform is None:
-            self.transform = transforms.Compose([
-                transforms.ToTensor(), ])
-        else:
-            self.transform = transform
-        self.midi_datas = self.load_midi_files(os.path.join(data_path, '.38 Special'))
+        self.fold = fold
+
+        with open(data_path, 'rb') as p:
+            data = pickle.load(p, encoding="latin1")
+
+        self.midi_datas = self.get_midis_array(data[self.fold])
+        self.processed_midi_datas = self.get_masked_data(self.midi_datas)
 
     def __len__(self):
-        return self.size
+        return len(self.processed_midi_datas)
 
     def __getitem__(self, idx):
-        pass
-        # img1, img2, np_label = self.get_image_pair()
-        # real_image = self.transform(img1)
-        # fake_image = self.transform(img2)
-        # label = torch.from_numpy(np_label)
+        return torch.from_numpy(self.processed_midi_datas[idx])
 
-        # return real_image, fake_image, label
-
-    def load_midi_files(self, path):
+    def get_midis_array(self, data):
         midis = []
-
-        for filename in glob.glob(os.path.join(path, '*.mid')):
-            midi = {}
-            # midis.append(filename)
-            # print(filename)
-            midi_data = pretty_midi.PrettyMIDI(filename)
-            for i in midi_data.instruments:
-                one_hot_enc = self.convert_to_one_hot(i)
-                # print(one_hot_enc)
-                midi[i.name] = one_hot_enc
-            # print(midi_data.instruments[0].notes)
+        for seq in data:
+            midi = np.zeros((4, 128, 128))
+            crop_data = seq[0:128]
+            for ts_idx in range(0, len(crop_data)):
+                ts = crop_data[ts_idx]
+                for i in range(0, len(ts)):
+                    midi[i, ts_idx, int(ts[i])] = 1
             midis.append(midi)
 
         return midis
 
-    def convert_to_one_hot(self, instrument):
-        notes = instrument.notes
-        print(notes)
-        num_notes = len(notes)
-        max_notes = 1200
-        max_keys = self.get_max_keys(notes)
-        # print(num_notes)
-        if num_notes > max_notes:
-            num_notes = max_notes
-        one_hot_enc = np.zeros((num_notes, max_keys))
-        for i in range(num_notes):
-            one_hot_enc[i, notes[i].pitch - 1] = 1
+    def get_masked_data(self, midis):
+        all_masked_data = []
+        for midi in midis:
+            temp = []
+            for i in midi:
+                mask = self.get_mask()
+                masked_data = np.multiply(i, mask)
+                temp.append(np.concatenate((mask, masked_data), axis=0))
+            all_masked_data.append(np.concatenate(temp, axis=0))
 
-        print(one_hot_enc.shape)
-        return one_hot_enc
+        return all_masked_data
 
-    def get_max_keys(self, notes):
-        max_pitch = notes[0].pitch
-        for i in notes:
-            if i.pitch > max_pitch:
-                max_pitch = i.pitch
+    def get_mask(self):
+        mask_idx = np.random.choice(128 * 128, size=np.random.choice(128 * 128) + 1, replace=False)
+        mask = np.zeros(128 * 128, dtype=np.float32)
+        mask[mask_idx] = 1.
+        mask = mask.reshape((1, 128, 128))
 
-        return max_pitch
+        return mask
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../data/clean_midi.tar/clean_midi/')
+    md = MidiDataset('../data/JSB-Chorales-dataset/jsb-chorales-16th.pkl')
+    itr = enumerate(md)
+
+    for idx, data in itr:
+        print(data)  # Tensor of 8x128x128
+        print(data.shape)  # Should be 8x128x128

@@ -23,7 +23,9 @@ class MidiDataset(Dataset):
         return len(self.processed_midi_datas)
 
     def __getitem__(self, idx):
-        return torch.from_numpy(self.processed_midi_datas[idx])
+        original_data = torch.from_numpy(self.midi_datas[idx])
+        processed_data = torch.from_numpy(self.processed_midi_datas[idx])
+        return original_data, processed_data
 
     def get_midis_array(self, data):
         midis = []
@@ -60,9 +62,13 @@ class MidiDataset(Dataset):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../data/JSB-Chorales-dataset/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     itr = enumerate(md)
 
     for idx, data in itr:
-        print(data)  # Tensor of 8x128x128
-        print(data.shape)  # Should be 8x128x128
+        original_data, processed_data = data
+        print(original_data)  # Tensor of 4x128x128
+        print(processed_data)  # Tensor of 8x128x128
+        print(original_data.shape)  # Should be 4x128x128
+        print(processed_data.shape)  # Should be 8x128x128
+        break

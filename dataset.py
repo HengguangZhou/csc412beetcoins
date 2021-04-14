@@ -88,6 +88,12 @@ class MidiDataset(Dataset):
 
         return mask
 
+    def get_min_midi_pitch(self):
+        return self.min_midi_pitch
+
+    def get_max_midi_pitch(self):
+        return self.max_midi_pitch
+
 
 if __name__ == '__main__':
     md = MidiDataset('../jsb/jsb-chorales-16th.pkl')

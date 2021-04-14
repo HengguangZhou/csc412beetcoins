@@ -43,29 +43,11 @@ class MidiDataset(Dataset):
             # print(filename)
             midi_data = pretty_midi.PrettyMIDI(filename)
             for i in midi_data.instruments:
-                one_hot_enc = self.convert_to_one_hot(i)
-                # print(one_hot_enc)
-                midi[i.name] = one_hot_enc
+                midi[i.name] = i.get_piano_roll()
             # print(midi_data.instruments[0].notes)
             midis.append(midi)
-
+        print(midis)
         return midis
-
-    def convert_to_one_hot(self, instrument):
-        notes = instrument.notes
-        print(notes)
-        num_notes = len(notes)
-        max_notes = 1200
-        max_keys = self.get_max_keys(notes)
-        # print(num_notes)
-        if num_notes > max_notes:
-            num_notes = max_notes
-        one_hot_enc = np.zeros((num_notes, max_keys))
-        for i in range(num_notes):
-            one_hot_enc[i, notes[i].pitch - 1] = 1
-
-        print(one_hot_enc.shape)
-        return one_hot_enc
 
     def get_max_keys(self, notes):
         max_pitch = notes[0].pitch
@@ -77,4 +59,4 @@ class MidiDataset(Dataset):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../data/clean_midi.tar/clean_midi/')
+    md = MidiDataset('../clean_midi/')

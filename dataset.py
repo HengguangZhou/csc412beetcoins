@@ -8,7 +8,7 @@ class MidiDataset(Dataset):
     def __init__(self, data_path, fold='train'):
         """
         :param data_path: file name of the pickle data to load midi info from
-        :param fold: either 'train', 'validate', or 'test'
+        :param fold: either 'train', 'valid', or 'test'
         """
         self.data_path = data_path
         self.fold = fold
@@ -35,7 +35,7 @@ class MidiDataset(Dataset):
                 for i in range(0, len(ts)):
                     midi[i, ts_idx, int(ts[i])] = 1
             midis.append(midi)
-            
+
         return midis
 
     def get_masked_data(self, midis):

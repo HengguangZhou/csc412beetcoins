@@ -9,7 +9,7 @@ def convert_3d_to_2d(encoding3d, min_pitch):
     Encoding3d is a an array of shape 4x128xP for some P.
     Want to return an array of shape Tx4 where the (i,j)th entry of the array
     is the midi pitch of the jth voice at time i.
-
+    
     :param encoding3d: 3d tensor encoding of the midi, a tensor of shape 4x128xP
     :return: array of shape (T, 4), where T=128 is the time
     """
@@ -21,7 +21,6 @@ def convert_3d_to_2d(encoding3d, min_pitch):
             pitch_rel_idx = np.where(vec == 1)[0][0]
             pitch = min_pitch + pitch_rel_idx
             encoding2d[t, i] = pitch
-
     return torch.from_numpy(encoding2d)
 
 
@@ -45,7 +44,6 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range):
             encoding3d[i, t, pitch_idx] = 1
 
     return torch.from_numpy(encoding3d)
-
 
 def piano_roll2d_to_midi(piece):
     """

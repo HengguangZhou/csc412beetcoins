@@ -98,6 +98,7 @@ class MidiDataset(Dataset):
         return self.pitch_range
 
 
+
 if __name__ == '__main__':
     md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     itr = enumerate(md)

@@ -94,9 +94,13 @@ class MidiDataset(Dataset):
     def get_max_midi_pitch(self):
         return self.max_midi_pitch
 
+    def get_pitch_range(self):
+        return self.pitch_range
+
+
 
 if __name__ == '__main__':
-    md = MidiDataset('./datasets/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     itr = enumerate(md)
 
     for idx, data in itr:

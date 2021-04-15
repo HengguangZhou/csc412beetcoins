@@ -18,7 +18,7 @@ class MidiDataset(Dataset):
             data = pickle.load(p, encoding="latin1")
         self.get_max_min_pitch(data[self.fold])
         self.pitch_range = self.max_midi_pitch - self.min_midi_pitch + 1
-        self.midi_datas = self.get_midis_array(data[self.fold])
+        self.oh_midi_datas, self.midi_datas = self.get_midis_array(data[self.fold])
         self.midi_masks = self.get_concat_mask(self.midi_datas)
         # self.processed_midi_datas = self.get_masked_data(self.midi_datas)
 
@@ -26,9 +26,10 @@ class MidiDataset(Dataset):
         return len(self.midi_datas)
 
     def __getitem__(self, idx):
-        original_data = torch.from_numpy(self.midi_datas[idx]).float()
+        oh_data = torch.from_numpy(self.oh_midi_datas[idx]).float()
+        data = torch.from_numpy(self.midi_datas[idx]).float()
         mask = torch.from_numpy(self.midi_masks[idx])
-        return original_data, mask, idx
+        return data, oh_data, mask, idx
 
     def get_max_min_pitch(self, data):
         for seq in data:
@@ -42,18 +43,22 @@ class MidiDataset(Dataset):
                         self.min_midi_pitch = int(min(ts))
 
     def get_midis_array(self, data):
+        oh_midis = []
         midis = []
         for seq in data:
-            midi = np.zeros((4, 128, self.pitch_range))
+            midi = np.zeros((4, 128))
+            oh_midi = np.zeros((4, 128, self.pitch_range))
             crop_data = seq[0:128]
             for ts_idx in range(0, len(crop_data)):
                 ts = crop_data[ts_idx]
                 for i in range(0, len(ts)):
                     # change max and min pitch
                     pitch_idx = int(ts[i]) - self.min_midi_pitch
-                    midi[i, ts_idx, pitch_idx] = 1
+                    midi[i, ts_idx] = pitch_idx
+                    oh_midi[i, ts_idx, pitch_idx] = 1
+            oh_midis.append(oh_midi)
             midis.append(midi)
-        return midis
+        return oh_midis, midis
 
     def get_concat_mask(self, midis):
         all_masks = []

@@ -26,9 +26,9 @@ class MidiDataset(Dataset):
         return len(self.midi_datas)
 
     def __getitem__(self, idx):
-        original_data = torch.from_numpy(self.midi_datas[idx])
+        original_data = torch.from_numpy(self.midi_datas[idx]).float()
         mask = torch.from_numpy(self.midi_masks[idx])
-        return original_data, mask
+        return original_data, mask, idx
 
     def get_max_min_pitch(self, data):
         for seq in data:

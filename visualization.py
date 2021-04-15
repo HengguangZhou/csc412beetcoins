@@ -21,7 +21,6 @@ def visualize_hehexd(midi_data_hehexd):
     bass = midi_data_hehexd[3].transpose(0, 1)
 
     fig, axs = plt.subplots(1, 4)
-    # np.flip(soprano.numpy(), axis=0)
     axs[0].imshow(soprano, cmap='hot', interpolation='nearest')
     axs[0].set_title('soprano')
     axs[0].invert_yaxis()

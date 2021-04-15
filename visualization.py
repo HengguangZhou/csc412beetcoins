@@ -7,6 +7,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
+from convert import *
 
 
 def visualize_hehexd(midi_data_hehexd):
@@ -54,6 +55,12 @@ if __name__ == '__main__':
     test_midi = md[0]
     print(test_midi[0].shape)
 
-    padded_midi = pad_piano_roll(test_midi[0], md.get_min_midi_pitch(), md.get_max_midi_pitch())
-    visualize_hehexd(padded_midi)
+    # padded_midi = pad_piano_roll(test_midi[0], md.get_min_midi_pitch(), md.get_max_midi_pitch())
+    # visualize_hehexd(padded_midi)
+    # plt.show()
+
+    test_midi2d = convert_3d_to_2d(test_midi[0], md.get_min_midi_pitch())
+    test_midi3d = convert_2d_to_3d(torch.transpose(test_midi2d, 0, 1), md.get_min_midi_pitch(), md.get_pitch_range())
+    padded_midi2 = pad_piano_roll(test_midi3d, md.get_min_midi_pitch(), md.get_max_midi_pitch())
+    visualize_hehexd(padded_midi2)
     plt.show()

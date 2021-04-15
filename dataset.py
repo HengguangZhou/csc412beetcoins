@@ -60,6 +60,7 @@ class MidiDataset(Dataset):
             midis.append(midi)
         return oh_midis, midis
 
+
     def get_concat_mask(self, midis):
         all_masks = []
         for midi in midis: # for each file we want a mask of 4x128xP
@@ -92,9 +93,19 @@ class MidiDataset(Dataset):
 
         return mask
 
+    def get_min_midi_pitch(self):
+        return self.min_midi_pitch
+
+    def get_max_midi_pitch(self):
+        return self.max_midi_pitch
+
+    def get_pitch_range(self):
+        return self.pitch_range
+
+
 
 if __name__ == '__main__':
-    md = MidiDataset('./datasets/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     itr = enumerate(md)
 
     for idx, data in itr:

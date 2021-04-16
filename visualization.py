@@ -1,4 +1,5 @@
 import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 from midi2audio import FluidSynth
 import pretty_midi
 from IPython.display import Audio, display

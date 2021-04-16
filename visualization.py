@@ -51,7 +51,7 @@ def pad_piano_roll(piano_roll, min_pitch, max_pitch):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../data/JSB-Chorales-dataset/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     test_midi = md[0]
     print(test_midi[0].shape)
 
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     # visualize_hehexd(padded_midi)
     # plt.show()
 
-    test_midi2d = convert_3d_to_2d(test_midi[0], md.get_min_midi_pitch())
+    test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())
     test_midi3d = convert_2d_to_3d(torch.transpose(test_midi2d, 0, 1), md.get_min_midi_pitch(), md.get_pitch_range())
     padded_midi2 = pad_piano_roll(test_midi3d, md.get_min_midi_pitch(), md.get_max_midi_pitch())
     visualize_hehexd(padded_midi2)

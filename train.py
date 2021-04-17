@@ -28,8 +28,9 @@ if __name__ == "__main__":
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=0.0001)
     parser.add_argument("--weights_dir", type=str, default=".\\weights\\")
-    parser.add_argument("--num_epochs", type=int, default=100)
+    parser.add_argument("--num_epochs", type=int, default=500)
     parser.add_argument('--input_channels', type=int, default=9)
+    parser.add_argument('--time_steps', type=int, default=32)
 
     opts = parser.parse_args()
     print(opts)
@@ -48,7 +49,7 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     if opts.model == 'coconet':
-        model = coco_decoder(in_channels=9)
+        model = coco_decoder(in_channels=8)
 
     model = model.to(device)
 
@@ -64,17 +65,17 @@ if __name__ == "__main__":
     #                               batch_size=opts.batch_size,
     #                               shuffle=True)
 
-    # latent_size = (128, 46)
+    # latent_size = (opts.time_steps, 46)
 
     num_chorales = len(train_midi)
-    latent_size = 128 * 46
-    latents = torch.nn.Embedding(num_chorales, 128 * 46)
+    latent_size = opts.time_steps * 46
+    latents = torch.nn.Embedding(num_chorales, opts.time_steps * 46)
     torch.nn.init.normal_(
         latents.weight.data,
         0.0,
         1.0 / math.sqrt(latent_size),
     )
-    latents.requires_grad_()
+    # latents.requires_grad_()
     optimizer = torch.optim.Adam([{
                 "params": model.parameters(),
                 "lr": opts.lr,
@@ -95,14 +96,15 @@ if __name__ == "__main__":
 
             los = 0
             for idx, data in enumerate(train_midi_loader):
-                midi, mask, ind = data
-                # B, I, T, P = midi.shape
-                midi, mask = midi.to(device), mask.to(device)
+                midi, oh_midi, mask, ind = data
+                B, I, T, P = oh_midi.shape
+                midi, oh_midi, mask = midi.to(device), oh_midi.to(device), mask.to(device)
                 # print(f"midi: {midi.dtype}, mask:{mask.dtype}")
                 latent = latents(ind).to(device)
-                pred = model(midi, mask, latent)
+                pred = model(oh_midi, mask, latent)
 
-                loss = criterion(pred, midi.long())
+
+                loss = criterion(pred.reshape(-1, P), midi.reshape(-1).long())
 
                 optimizer.zero_grad()
                 los += loss.item()

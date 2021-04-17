@@ -3,7 +3,7 @@ import os
 import torch
 import numpy as np
 from torch import nn
-from models.coconet import  coco_decoder
+from models.coconet import coco_decoder
 
 def extract_latent(x):
     pass

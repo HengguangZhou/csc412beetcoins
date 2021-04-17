@@ -4,16 +4,16 @@ import mido
 from dataset import MidiDataset
 
 
-def convert_3d_to_2d(encoding3d, min_pitch):
+def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     """
-    Encoding3d is a an array of shape 4x128xP for some P.
+    Encoding3d is a an array of shape 4xtimestep_sizexP for some P.
     Want to return an array of shape Tx4 where the (i,j)th entry of the array
     is the midi pitch of the jth voice at time i.
     
-    :param encoding3d: 3d tensor encoding of the midi, a tensor of shape 4x128xP
-    :return: array of shape (T, 4), where T=128 is the time
+    :param encoding3d: 3d tensor encoding of the midi, a tensor of shape 4xtimestep_sizexP
+    :return: array of shape (T, 4), where T=timestep_size is the time
     """
-    encoding2d = np.zeros((128, 4))
+    encoding2d = np.zeros((timestep_size, 4))
     ins, time, pitch = encoding3d.shape
     for i in range(0, ins):
         for t in range(0, time):
@@ -24,9 +24,9 @@ def convert_3d_to_2d(encoding3d, min_pitch):
     return torch.from_numpy(encoding2d)
 
 
-def convert_2d_to_3d(encoding2d, min_pitch, pitch_range):
+def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
     """
-    Encoding2d is a an array of shape IxT (4x128) for some P where the (i,j)th entry of the array
+    Encoding2d is a an array of shape IxT (4xtimestep_size) for some P where the (i,j)th entry of the array
     is the midi pitch of the ith voice at time j.
     Want to return an array of shape IxTxP.
 
@@ -37,7 +37,7 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range):
     """
     ins, time = encoding2d.shape
 
-    encoding3d = np.zeros((4, 128, pitch_range))  # IxTxP
+    encoding3d = np.zeros((4, timestep_size, pitch_range))  # IxTxP
     for i in range(0, ins):
         for t in range(0, time):
             pitch_idx = int(encoding2d[i, t] - min_pitch)
@@ -101,12 +101,12 @@ def piano_roll2d_to_midi(piece):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../data/JSB-Chorales-dataset/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
 
     test_midi = md[0]
     # print(test_midi[0].shape)
 
-    test_midi2d = convert_3d_to_2d(test_midi[0], md.get_min_midi_pitch())
+    test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())
     # mido = piano_roll2d_to_midi(test_midi2d)
     #
     # mido.save('testmidi.mid')

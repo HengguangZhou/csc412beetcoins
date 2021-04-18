@@ -7,7 +7,7 @@ from torch.utils.data.dataloader import DataLoader
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
 import pretty_midi
-from dataset import MidiDataset
+from dataset import MidiDataset, get_concat_mask
 import midi2audio
 from models.coconet import coco_decoder
 import math
@@ -31,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", type=int, default=500)
     parser.add_argument('--input_channels', type=int, default=9)
     parser.add_argument('--time_steps', type=int, default=32)
+    parser.add_argument('--num_mask_per_data', type=int, default=1)
 
     opts = parser.parse_args()
     print(opts)
@@ -96,12 +97,15 @@ if __name__ == "__main__":
 
             los = 0
             for idx, data in enumerate(train_midi_loader):
-                midi, oh_midi, mask, ind = data
+                midi, oh_midi, ind = data
                 B, I, T, P = oh_midi.shape
-                midi, oh_midi, mask = midi.to(device), oh_midi.to(device), mask.to(device)
+                midi, oh_midi = midi.to(device), oh_midi.to(device)
                 # print(f"midi: {midi.dtype}, mask:{mask.dtype}")
                 latent = latents(ind).to(device)
-                pred = model(oh_midi, mask, latent)
+                for i in opts.num_mask_per_data:
+                    mask = get_concat_mask(oh_midi)
+                    mask = mask.to(device)
+                    pred = model(oh_midi, mask, latent)
 
 
                 loss = criterion(pred.reshape(-1, P), midi.reshape(-1).long())

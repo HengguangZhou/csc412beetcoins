@@ -29,8 +29,8 @@ class MidiDataset(Dataset):
     def __getitem__(self, idx):
         oh_data = torch.from_numpy(self.oh_midi_datas[idx]).float()
         data = torch.from_numpy(self.midi_datas[idx]).float()
-        # mask = torch.from_numpy(self.midi_masks[idx])
-        return data, oh_data, idx
+        mask = torch.from_numpy(get_concat_mask(oh_data))
+        return data, oh_data, mask, idx
 
     def get_max_min_pitch(self, data):
         for seq in data:
@@ -118,14 +118,12 @@ class MidiDataset(Dataset):
 
 
 def get_concat_mask(midi):
-    all_masks = []
     # want a mask of 4x32xP
     temp = []
     for i in range(len(midi)):
         temp.append(get_mask(midi))
-    all_masks.append(np.concatenate(temp, axis=0))
 
-    return all_masks
+    return np.concatenate(temp, axis=0)
 
 
 def get_mask(midi):

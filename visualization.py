@@ -52,8 +52,8 @@ def pad_piano_roll(piano_roll, min_pitch, max_pitch):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
-    test_midi = md[0]
+    md = MidiDataset('./data/jsb/jsb-chorales-16th.pkl')
+    test_midi = md[10]
     print(test_midi[0].shape)
 
     # padded_midi = pad_piano_roll(test_midi[0], md.get_min_midi_pitch(), md.get_max_midi_pitch())

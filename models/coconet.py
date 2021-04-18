@@ -42,9 +42,9 @@ class coco_decoder(nn.Module):
     def forward(self, x, mask, latent):
         x *= 1. - mask
         shape = x.shape
-        # latent = latent.reshape(shape[0], -1, shape[2], shape[3])
-        # x = torch.cat([x, mask, latent], dim=1)
-        x = torch.cat([x, mask], dim=1)
+        latent = latent.reshape(shape[0], -1, shape[2], shape[3])
+        x = torch.cat([x, mask, latent], dim=1)
+        # x = torch.cat([x, mask], dim=1)
         x = self.in_conv(x)
         x = self.in_bn(x)
         x = self.in_relu(x)

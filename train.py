@@ -49,7 +49,7 @@ if __name__ == "__main__":
         device = torch.device("cpu")
 
     if opts.model == 'coconet':
-        model = coco_decoder(in_channels=8)
+        model = coco_decoder(in_channels=9)
 
     model = model.to(device)
 

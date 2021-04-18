@@ -18,8 +18,12 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     for i in range(0, ins):
         for t in range(0, time):
             vec = encoding3d[i, t, :]
-            pitch_rel_idx = np.where(vec == 1)[0][0]
-            pitch = min_pitch + pitch_rel_idx
+            pitch_rel_idx = np.where(vec == 1)
+            if len(pitch_rel_idx) != 0:
+                # print(pitch_rel_idx)
+                pitch = min_pitch + pitch_rel_idx[0][0]
+            else:
+                pitch = 0
             encoding2d[t, i] = pitch
     return torch.from_numpy(encoding2d)
 
@@ -45,6 +49,7 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
 
     return torch.from_numpy(encoding3d)
 
+# Adapted from https://github.com/kevindonoghue/coconet-pytorch
 def piano_roll2d_to_midi(piece):
     """
     piece is a an array of shape (T, 4) for some T.
@@ -101,7 +106,7 @@ def piano_roll2d_to_midi(piece):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
+    md = MidiDataset('./data/jsb/jsb-chorales-16th.pkl')
 
     test_midi = md[0]
     # print(test_midi[0].shape)

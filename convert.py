@@ -19,8 +19,7 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
         for t in range(0, time):
             vec = encoding3d[i, t, :]
             pitch_rel_idx = np.where(vec == 1)
-            if len(pitch_rel_idx) != 0:
-                # print(pitch_rel_idx)
+            if len(pitch_rel_idx) != 0 and len(pitch_rel_idx[0]) != 0:
                 pitch = min_pitch + pitch_rel_idx[0][0]
             else:
                 pitch = 0
@@ -108,7 +107,7 @@ def piano_roll2d_to_midi(piece):
 if __name__ == '__main__':
     md = MidiDataset('./data/jsb/jsb-chorales-16th.pkl')
 
-    test_midi = md[0]
+    test_midi = md[200]
     # print(test_midi[0].shape)
 
     test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())

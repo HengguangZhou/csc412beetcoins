@@ -48,7 +48,10 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
 
     return torch.from_numpy(encoding3d)
 
-# Adapted from https://github.com/kevindonoghue/coconet-pytorch
+
+# This function is from
+# https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
+
 def piano_roll2d_to_midi(piece):
     """
     piece is a an array of shape (T, 4) for some T.

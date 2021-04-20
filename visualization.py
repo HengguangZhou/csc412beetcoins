@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from convert import *
 
-
+# This function is adapted from
+# https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
 def visualize_hehexd(midi_data_hehexd):
     """
     Visualize each instrument's piano roll

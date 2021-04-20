@@ -84,26 +84,29 @@ if __name__ == "__main__":
 
     midis = MidiDataset(opts.target_midi, fold='train')
 
-    test_midi2d, test_midi3d, _, _ = midis[0]
-    style_midi2d, style_midi3d, _, _ = midis[200]
+    test_midi2d, test_midi3d, _, _ = midis[6006]
+    style_midi2d, style_midi3d, _, _ = midis[720]
+    style_midi2d2, style_midi3d2, _, _ = midis[5000]
     # print(test_midi2d.shape)
     # print(test_midi3d.shape)
     T = test_midi3d.shape[1]
     P = test_midi3d.shape[2]
     mask = torch.ones(test_midi3d.shape)
-    mask[3, :, :] = 0
+    mask[1:3, :, :] = 0
     masked_3d = test_midi3d.clone() * (1 - mask)
     mask = mask.unsqueeze(0)
 
 
     print(midis.get_min_midi_pitch())
-    latent = extract_latent(style_midi2d, style_midi3d, model)
-    pred = model(test_midi3d.unsqueeze(0), mask, latent, testing=True)
+    latent1 = extract_latent(style_midi2d, style_midi3d, model)
+    latent2 = extract_latent(style_midi2d2, style_midi3d2, model)
+    pred = model(test_midi3d.unsqueeze(0), mask, latent1 + latent2, testing=True)
     # pred = model((test_midi3d * (1 - mask)).unsqueeze(0), 0, latent)
     pred = torch.round(pred.squeeze(0).detach())
     mido_result = piano_roll2d_to_midi(convert_3d_to_2d(pred.numpy(), midis.get_min_midi_pitch()))
     mido_result.save('result.mid')
-    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch())).save('style.mid')
+    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch())).save('style1.mid')
+    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d2.numpy(), midis.get_min_midi_pitch())).save('style2.mid')
     # masked_original = piano_roll2d_to_midi(convert_3d_to_2d(masked_3d.detach().numpy(), midis.get_min_midi_pitch()))
     # masked_original.save("original.mid")
 

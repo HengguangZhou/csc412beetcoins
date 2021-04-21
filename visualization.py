@@ -12,16 +12,16 @@ from convert import *
 
 # This function is adapted from
 # https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
-def visualize_hehexd(midi_data_hehexd):
+def visualize_hehexd(midi_data):
     """
     Visualize each instrument's piano roll
     :param midi_data_hehexd: 3d tensor of size 4x128xP representing the encoding of the piano roll of the midi file
     :return: idk
     """
-    soprano = midi_data_hehexd[0].transpose(0, 1)
-    alto = midi_data_hehexd[1].transpose(0, 1)
-    tenor = midi_data_hehexd[2].transpose(0, 1)
-    bass = midi_data_hehexd[3].transpose(0, 1)
+    soprano = midi_data[0].transpose(0, 1)
+    alto = midi_data[1].transpose(0, 1)
+    tenor = midi_data[2].transpose(0, 1)
+    bass = midi_data[3].transpose(0, 1)
 
     fig, axs = plt.subplots(1, 4)
     axs[0].imshow(soprano, cmap='hot', interpolation='nearest')
@@ -40,6 +40,20 @@ def visualize_hehexd(midi_data_hehexd):
     fig.set_figwidth(15)
     return fig, axs
 
+def visualize_together(midi_data):
+    soprano = midi_data[0].transpose(0, 1)
+    alto = midi_data[1].transpose(0, 1)
+    tenor = midi_data[2].transpose(0, 1)
+    bass = midi_data[3].transpose(0, 1)
+    img1 = plt.imshow(soprano, cmap='hot', interpolation='nearest')
+    img1.invert_yaxis()
+    img2 = plt.imshow(alto, cmap='hot', interpolation='nearest')
+    img2.invert_yaxis()
+    img3 = plt.imshow(tenor, cmap='hot', interpolation='nearest')
+    img3.invert_yaxis()
+    img4 = plt.imshow(bass, cmap='hot', interpolation='nearest')
+    img4.invert_yaxis()
+
 
 def pad_piano_roll(piano_roll, min_pitch, max_pitch):
     """
@@ -55,7 +69,7 @@ def pad_piano_roll(piano_roll, min_pitch, max_pitch):
 if __name__ == '__main__':
     md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     test_midi = md[0]
-    print(test_midi[0].shape)
+    # print(test_midi[0].shape)
 
     # padded_midi = pad_piano_roll(test_midi[0], md.get_min_midi_pitch(), md.get_max_midi_pitch())
     # visualize_hehexd(padded_midi)
@@ -64,5 +78,5 @@ if __name__ == '__main__':
     test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())
     test_midi3d = convert_2d_to_3d(torch.transpose(test_midi2d, 0, 1), md.get_min_midi_pitch(), md.get_pitch_range())
     padded_midi2 = pad_piano_roll(test_midi3d, md.get_min_midi_pitch(), md.get_max_midi_pitch())
-    visualize_hehexd(padded_midi2)
+    visualize_together(padded_midi2)
     plt.show()

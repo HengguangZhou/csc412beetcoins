@@ -29,7 +29,6 @@ class MidiDataset(Dataset):
         return len(self.midi_datas)
 
     def __getitem__(self, idx):
-        idx = np.random.randint(0, len(self.midi_datas))
         oh_data = torch.from_numpy(self.oh_midi_datas[idx]).float()
         data = torch.from_numpy(self.midi_datas[idx]).float()
         mask = torch.from_numpy(get_concat_mask(oh_data))
@@ -55,7 +54,8 @@ class MidiDataset(Dataset):
                     datas.append(seq[i:i+self.timestep_len])
                     i += 1
             else:
-                datas.append(seq[:self.timestep_len])
+                starting_idx = np.random.randint(0, seq_len - self.timestep_len)
+                datas.append(seq[starting_idx:starting_idx+self.timestep_len])
         return datas
 
 

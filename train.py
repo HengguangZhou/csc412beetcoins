@@ -31,6 +31,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", type=int, default=500)
     parser.add_argument('--input_channels', type=int, default=9)
     parser.add_argument('--time_steps', type=int, default=32)
+    parser.add_argument('--all_perm', type=bool, default=False)
 
     opts = parser.parse_args()
     print(opts)
@@ -53,7 +54,7 @@ if __name__ == "__main__":
 
     model = model.to(device)
 
-    train_midi = MidiDataset(opts.data, fold='train')
+    train_midi = MidiDataset(opts.data, fold='train', timestep_len=opts.time_steps, all_comb=opts.all_perm)
     # train_midi = dataset_with_indices(train_midi)
     # test_midi = MidiDataset(opts.data, fold='valid')
 

@@ -5,7 +5,7 @@ import pickle
 
 
 class MidiDataset(Dataset):
-    def __init__(self, data_path, fold='train', timestep_len = 32):
+    def __init__(self, data_path, fold='train', timestep_len = 32, all_comb = False):
         """
         :param data_path: file name of the pickle data to load midi info from
         :param fold: either 'train', 'valid', or 'test'
@@ -21,6 +21,7 @@ class MidiDataset(Dataset):
         self.pitch_range = self.max_midi_pitch - self.min_midi_pitch + 1
         self.oh_midi_datas, self.midi_datas = self.get_midis_array(self.separate_data(data[self.fold]))
         self.midi_masks = self.get_concat_mask(self.midi_datas)
+        self.all_comb = all_comb
         # self.processed_midi_datas = self.get_masked_data(self.midi_datas)
 
     def __len__(self):
@@ -46,10 +47,13 @@ class MidiDataset(Dataset):
         datas = []
         for seq in data:
             seq_len = len(seq)
-            i = 0
-            while i + self.timestep_len <= seq_len:
-                datas.append(seq[i:i+self.timestep_len])
-                i += 1
+            if self.all_comb:
+                i = 0
+                while i + self.timestep_len <= seq_len:
+                    datas.append(seq[i:i+self.timestep_len])
+                    i += 1
+            else:
+                datas.append(seq[:self.timestep_len])
         return datas
 
 

@@ -28,6 +28,7 @@ class MidiDataset(Dataset):
         return len(self.midi_datas)
 
     def __getitem__(self, idx):
+        idx = np.random.randint(0, len(self.midi_datas))
         oh_data = torch.from_numpy(self.oh_midi_datas[idx]).float()
         data = torch.from_numpy(self.midi_datas[idx]).float()
         mask = torch.from_numpy(get_concat_mask(oh_data))

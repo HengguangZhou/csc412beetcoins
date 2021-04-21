@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
     train_midi = MidiDataset(opts.data, fold='train', timestep_len=opts.time_steps, all_comb=opts.all_perm)
     # train_midi = dataset_with_indices(train_midi)
-    # test_midi = MidiDataset(opts.data, fold='valid')
+    # test_midi = MidiDataset(opts.data, fold='valid', timestep_len=opts.time_steps, all_comb=opts.all_perm)
 
     train_midi_loader = DataLoader(dataset=train_midi,
                                     batch_size=opts.batch_size,

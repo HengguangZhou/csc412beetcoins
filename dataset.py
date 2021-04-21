@@ -54,7 +54,7 @@ class MidiDataset(Dataset):
                     datas.append(seq[i:i+self.timestep_len])
                     i += 1
             else:
-                starting_idx = np.random.randint(0, seq_len - self.timestep_len)
+                starting_idx = np.random.randint(0, seq_len - self.timestep_len + 1)
                 datas.append(seq[starting_idx:starting_idx+self.timestep_len])
         return datas
 

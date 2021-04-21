@@ -10,6 +10,7 @@ class MidiDataset(Dataset):
         :param data_path: file name of the pickle data to load midi info from
         :param fold: either 'train', 'valid', or 'test'
         """
+        self.all_comb = all_comb
         self.data_path = data_path
         self.timestep_len = timestep_len
         self.fold = fold
@@ -20,7 +21,7 @@ class MidiDataset(Dataset):
         self.get_max_min_pitch(data[self.fold])
         self.pitch_range = self.max_midi_pitch - self.min_midi_pitch + 1
         self.oh_midi_datas, self.midi_datas = self.get_midis_array(self.separate_data(data[self.fold]))
-        self.all_comb = all_comb
+
         # self.midi_masks = self.get_concat_mask(self.midi_datas)
         # self.processed_midi_datas = self.get_masked_data(self.midi_datas)
 

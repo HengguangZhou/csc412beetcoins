@@ -2,6 +2,8 @@ import torch
 import numpy as np
 import mido
 from dataset import MidiDataset
+import pretty_midi
+import random
 
 
 def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
@@ -13,13 +15,16 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     :param encoding3d: 3d tensor encoding of the midi, a tensor of shape 4xtimestep_sizexP
     :return: array of shape (T, 4), where T=timestep_size is the time
     """
-    encoding2d = np.zeros((timestep_size, 4))
     ins, time, pitch = encoding3d.shape
+    encoding2d = np.zeros((timestep_size, ins))
     for i in range(0, ins):
         for t in range(0, time):
             vec = encoding3d[i, t, :]
-            pitch_rel_idx = np.where(vec == 1)[0][0]
-            pitch = min_pitch + pitch_rel_idx
+            pitch_rel_idx = np.where(vec == 1)
+            if len(pitch_rel_idx) != 0 and len(pitch_rel_idx[0]) != 0:
+                pitch = min_pitch + pitch_rel_idx[0][0]
+            else:
+                pitch = 0
             encoding2d[t, i] = pitch
     return torch.from_numpy(encoding2d)
 
@@ -37,7 +42,7 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
     """
     ins, time = encoding2d.shape
 
-    encoding3d = np.zeros((4, timestep_size, pitch_range))  # IxTxP
+    encoding3d = np.zeros((ins, timestep_size, pitch_range))  # IxTxP
     for i in range(0, ins):
         for t in range(0, time):
             pitch_idx = int(encoding2d[i, t] - min_pitch)
@@ -45,8 +50,40 @@ def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
 
     return torch.from_numpy(encoding3d)
 
+
+def midi_to_piano_roll(midi_file, min_pitch, max_pitch, timestep_size=32):
+    md = pretty_midi.PrettyMIDI(midi_file)
+    temp = []
+    pitch_range = max_pitch - min_pitch + 1
+    for ins in md.instruments:
+        ins_p = ins.get_piano_roll(fs=10)
+        ins_p[ins_p > 0] = 1.0
+        if ins_p.shape[1] > timestep_size:  # Want to truncate the pianoroll to desired length of timestep
+            # Truncate by using a random starting index
+            start = random.randint(0, ins_p.shape[1]-timestep_size)
+            desired_piano_roll = ins_p[min_pitch:max_pitch+1, start:start+timestep_size]
+        else:
+            # If the piano is too short, pad zeros until desired timestep length
+            diff = timestep_size - ins_p.shape[1]
+            desired_piano_roll = np.concatenate([ins_p[min_pitch:max_pitch+1, :],
+                                                 np.zeros((pitch_range, diff))], axis=1)
+        temp.append(desired_piano_roll.transpose())
+
+    if len(temp) <= 4:
+        final_piano_roll = np.stack(temp, axis=0)
+        diff = 4 - len(temp)
+        if diff > 0:  # Pad extra layers of zeros for the final piano roll if less than 4 levels
+            final_piano_roll = np.concatenate([final_piano_roll,
+                                               np.zeros((diff, timestep_size, pitch_range))], axis=0)
+    else:  # More than 4 tracks, so choose 4 tracks only
+        final_piano_roll = np.stack(temp[0:4], axis=0)
+
+    return final_piano_roll
+
+
 # This function is from
 # https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
+
 def piano_roll2d_to_midi(piece):
     """
     piece is a an array of shape (T, 4) for some T.
@@ -103,9 +140,9 @@ def piano_roll2d_to_midi(piece):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
+    md = MidiDataset('./data/jsb/jsb-chorales-16th.pkl')
 
-    test_midi = md[0]
+    test_midi = md[200]
     # print(test_midi[0].shape)
 
     test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())

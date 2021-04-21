@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from convert import piano_roll2d_to_midi, convert_3d_to_2d, convert_2d_to_3d
 class res_block(nn.Module):
 
     def __init__(self, hidden_channels=128, kernel_size=3, pad=1):
@@ -39,12 +39,15 @@ class coco_decoder(nn.Module):
         self.out_conv = nn.Conv2d(hidden_channels, out_channels, kernel_size=kernel_size, padding=pad)
         self.out_bn = nn.BatchNorm2d(out_channels)
 
-    def forward(self, x, mask, latent):
+    def forward(self, x, mask, latent, testing=False):
         x *= 1. - mask
+        if testing:
+            masked_original = piano_roll2d_to_midi(convert_3d_to_2d(x.detach().clone().squeeze(0).numpy(), 36))
+            masked_original.save("original.mid")
         shape = x.shape
-        # latent = latent.reshape(shape[0], -1, shape[2], shape[3])
-        # x = torch.cat([x, mask, latent], dim=1)
-        x = torch.cat([x, mask], dim=1)
+        latent = latent.reshape(shape[0], -1, shape[2], shape[3])
+        x = torch.cat([x, mask, latent], dim=1)
+        # x = torch.cat([x, mask], dim=1)
         x = self.in_conv(x)
         x = self.in_bn(x)
         x = self.in_relu(x)

@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument('--model', type=str, default='coconet')
     parser.add_argument('--target_midi', type=str, required=True)
     parser.add_argument('--style_midi', type=str, default=None)
-    parser.add_argument("--weights", type=str, default="./weights/coconet/coconet_latest.pth")
+    parser.add_argument("--weights", type=str, default="./weights/experiment1.pth")
     parser.add_argument('--input_channels', type=int, default=9)
 
     opts = parser.parse_args()
@@ -84,16 +84,16 @@ if __name__ == "__main__":
 
     midis = MidiDataset(opts.target_midi, fold='train')
 
-    test_midi2d, test_midi3d, _, _ = midis[6006]
-    style_midi2d, style_midi3d, _, _ = midis[720]
-    style_midi2d2, style_midi3d2, _, _ = midis[5000]
+    test_midi2d, test_midi3d, _, _ = midis[20000]
+    style_midi2d, style_midi3d, _, _ = midis[10005]
+    style_midi2d2, style_midi3d2, _, _ = midis[4000]
     # print(test_midi2d.shape)
     # print(test_midi3d.shape)
     T = test_midi3d.shape[1]
     P = test_midi3d.shape[2]
     mask = torch.ones(test_midi3d.shape)
     mask[1:3, :, :] = 0
-    masked_3d = test_midi3d.clone() * (1 - mask)
+    # masked_3d = test_midi3d.clone() * (1 - mask)
     mask = mask.unsqueeze(0)
 
 

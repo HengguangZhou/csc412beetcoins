@@ -40,15 +40,16 @@ def visualize_hehexd(midi_data):
     fig.set_figwidth(15)
     return fig, axs
 
-def visualize_together(midi_data):
+def visualize_together(midi_data, min_pitch, max_pitch):
     soprano = midi_data[0].transpose(0, 1)
     alto = midi_data[1].transpose(0, 1)
     tenor = midi_data[2].transpose(0, 1)
     bass = midi_data[3].transpose(0, 1)
-    img1 = plt.imshow(soprano, cmap='plasma', interpolation='nearest', origin="lower")
-    img2 = plt.imshow(alto, cmap='Reds', interpolation='nearest', alpha=0.5, origin="lower")
-    img3 = plt.imshow(tenor, cmap='Greens', interpolation='nearest', alpha=0.5, origin="lower")
-    img4 = plt.imshow(bass, cmap='Blues', interpolation='nearest', alpha=0.5, origin="lower")
+    plt.imshow(soprano, cmap='plasma', interpolation='nearest', origin="lower")
+    plt.imshow(alto, cmap='Reds', interpolation='nearest', alpha=0.5, origin="lower")
+    plt.imshow(tenor, cmap='Greens', interpolation='nearest', alpha=0.5, origin="lower")
+    plt.imshow(bass, cmap='Blues', interpolation='nearest', alpha=0.5, origin="lower")
+    plt.ylim(min_pitch - 1, max_pitch + 1)
 
 
 def pad_piano_roll(piano_roll, min_pitch, max_pitch):
@@ -75,5 +76,5 @@ if __name__ == '__main__':
     test_midi2d = convert_3d_to_2d(test_midi[1], md.get_min_midi_pitch())
     test_midi3d = convert_2d_to_3d(torch.transpose(test_midi2d, 0, 1), md.get_min_midi_pitch(), md.get_pitch_range())
     padded_midi2 = pad_piano_roll(test_midi3d, md.get_min_midi_pitch(), md.get_max_midi_pitch())
-    visualize_together(padded_midi2)
+    visualize_together(padded_midi2,md.get_min_midi_pitch(), md.get_max_midi_pitch())
     plt.show()

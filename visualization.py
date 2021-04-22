@@ -45,14 +45,10 @@ def visualize_together(midi_data):
     alto = midi_data[1].transpose(0, 1)
     tenor = midi_data[2].transpose(0, 1)
     bass = midi_data[3].transpose(0, 1)
-    img1 = plt.imshow(soprano, cmap='hot', interpolation='nearest')
-    img1.invert_yaxis()
-    img2 = plt.imshow(alto, cmap='hot', interpolation='nearest')
-    img2.invert_yaxis()
-    img3 = plt.imshow(tenor, cmap='hot', interpolation='nearest')
-    img3.invert_yaxis()
-    img4 = plt.imshow(bass, cmap='hot', interpolation='nearest')
-    img4.invert_yaxis()
+    img1 = plt.imshow(soprano, cmap='plasma', interpolation='nearest', origin="lower")
+    img2 = plt.imshow(alto, cmap='Reds', interpolation='nearest', alpha=0.5, origin="lower")
+    img3 = plt.imshow(tenor, cmap='Greens', interpolation='nearest', alpha=0.5, origin="lower")
+    img4 = plt.imshow(bass, cmap='Blues', interpolation='nearest', alpha=0.5, origin="lower")
 
 
 def pad_piano_roll(piano_roll, min_pitch, max_pitch):
@@ -67,7 +63,7 @@ def pad_piano_roll(piano_roll, min_pitch, max_pitch):
 
 
 if __name__ == '__main__':
-    md = MidiDataset('./data/jsb/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
     test_midi = md[10]
     print(test_midi[0].shape)
 

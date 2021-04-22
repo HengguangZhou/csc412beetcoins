@@ -60,7 +60,8 @@ class MidiDataset(Dataset):
                 else:
                     timestep_seq = seq
                     while len(timestep_seq) < self.timestep_len:
-                        timestep_seq.append((0, 0, 0, 0))  # Pad the sequence to desired timestep length with 0
+                        timestep_seq.append((self.min_midi_pitch, self.min_midi_pitch,
+                                             self.min_midi_pitch, self.min_midi_pitch))  # Pad the sequence to desired timestep length
                 datas.append(timestep_seq)
         return datas
 

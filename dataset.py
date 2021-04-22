@@ -54,8 +54,14 @@ class MidiDataset(Dataset):
                     datas.append(seq[i:i+self.timestep_len])
                     i += 1
             else:
-                starting_idx = np.random.randint(0, seq_len - self.timestep_len + 1)
-                datas.append(seq[starting_idx:starting_idx+self.timestep_len])
+                if seq_len > self.timestep_len:
+                    starting_idx = np.random.randint(0, seq_len - self.timestep_len + 1)
+                    timestep_seq = seq[starting_idx:starting_idx+self.timestep_len]
+                else:
+                    timestep_seq = seq
+                    while len(timestep_seq) < 128:
+                        timestep_seq.append((0, 0, 0, 0))  # Pad the sequence to desired timestep length with 0
+                datas.append(timestep_seq)
         return datas
 
 

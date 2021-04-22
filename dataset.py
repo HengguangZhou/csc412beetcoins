@@ -59,7 +59,7 @@ class MidiDataset(Dataset):
                     timestep_seq = seq[starting_idx:starting_idx+self.timestep_len]
                 else:
                     timestep_seq = seq
-                    while len(timestep_seq) < 128:
+                    while len(timestep_seq) < self.timestep_len:
                         timestep_seq.append((0, 0, 0, 0))  # Pad the sequence to desired timestep length with 0
                 datas.append(timestep_seq)
         return datas

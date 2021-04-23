@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from convert import piano_roll2d_to_midi, convert_3d_to_2d, convert_2d_to_3d
+import numpy as np
+
 class res_block(nn.Module):
 
     def __init__(self, hidden_channels=128, kernel_size=3, pad=1):
@@ -23,10 +25,9 @@ class res_block(nn.Module):
         return self.relu2(x + h)
 
 
-
 class coco_decoder(nn.Module):
 
-    def __init__(self, in_channels, out_channels=4, num_layers=32, hidden_channels=64, kernel_size=3, pad=1):
+    def __init__(self, in_channels, out_channels=4, num_layers=16, hidden_channels=32, kernel_size=3, pad=1):
         super(coco_decoder, self).__init__()
         self.in_conv = nn.Conv2d(in_channels, hidden_channels, kernel_size=kernel_size, padding=pad)
         self.in_bn = nn.BatchNorm2d(hidden_channels)
@@ -54,4 +55,4 @@ class coco_decoder(nn.Module):
         for i in range(self.num_layers - 1):
             x = getattr(self, f'block{i}')(x)
         x = self.out_bn(self.out_conv(x))
-        return nn.functional.softmax(x, dim=3)
+        return x

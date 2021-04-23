@@ -85,6 +85,7 @@ if __name__ == "__main__":
 
     values = [0, 0.2,0.4, 0.6, 0.8, 1]
     test_midi2d, test_midi3d, mask, _ = md[0]
+    mask[1:3, :, :] = 0
     mask = mask.unsqueeze(0)
     latent_a = extract_latent(test_midi2d, test_midi3d, model)
     latent_b = extract_latent(test_midi2d, test_midi3d, model)

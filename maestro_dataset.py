@@ -8,6 +8,7 @@ from dataset import get_concat_mask, get_mask
 import pickle
 import json
 import os
+import random
 
 
 class MaestroDataset(Dataset):
@@ -19,21 +20,14 @@ class MaestroDataset(Dataset):
         self.max_pitch = 108
         self.pitch_range = self.max_pitch - self.min_pitch + 1
         self.composer_map = self.map_composer_name_to_key()
-        # This is the array that contains tuples of three elements: 3d_x, 2d_x, and composer label
-        if os.path.exists('data.pickle') and os.path.getsize('data.pickle') > 0:
-            with open('data.pickle', 'rb') as f:
-                # Pickle the 'data' dictionary using the highest protocol available.
-                self.piano_roll_by_composer = pickle.load(f)
-        else:
-            self.piano_roll_by_composer = self.separate_midi_into_classes()
-            with open('data.pickle', 'wb') as f:
-                pickle.dump(self.piano_roll_by_composer, f, pickle.HIGHEST_PROTOCOL)
 
     def __len__(self):
-        return len(self.piano_roll_by_composer)
+        return len(self.midi_lst)
 
     def __getitem__(self, idx):
-        info = self.piano_roll_by_composer[idx]
+        seg_lst = self.separate_midi_into_classes(self.midi_lst[idx], self.composer_lst[idx])
+        info = random.choice(seg_lst)
+        # Return the random data segment
         oh_data = torch.from_numpy(info[0]).float()
         data = info[1]
         mask = torch.from_numpy(get_concat_mask(oh_data))
@@ -42,7 +36,7 @@ class MaestroDataset(Dataset):
 
         return data, oh_data, mask, idx, label
 
-    def find_min_max_pitch(self): # Used to find min and max pitch in the dataset
+    def find_min_max_pitch(self):  # Used to find min and max pitch in the dataset
         min_pitch = 127
         max_pitch = 0
         keep_iter = True
@@ -81,16 +75,13 @@ class MaestroDataset(Dataset):
 
         return composer_map
 
-    def separate_midi_into_classes(self):
+    def separate_midi_into_classes(self, midi_name, composer_name):
         lst = []
-        for midi_idx in range(0, len(self.midi_lst)):
-            midi_name = self.midi_lst[midi_idx]
-            composer_name = self.composer_lst[midi_idx]
-            sep_piano_roll3d = self.separate_piano_roll_by_ts(midi_name, composer_name)
-            # from the list of 3d piano roll, obtain the 2d piano roll
-            for i in sep_piano_roll3d:
-                piano_roll2d = convert_3d_to_2d(i, 0, self.timestep_len)  # Output is already a tensor
-                lst.append((i, piano_roll2d, composer_name))
+        sep_piano_roll3d = self.separate_piano_roll_by_ts(midi_name, composer_name)
+        # from the list of 3d piano roll, obtain the 2d piano roll
+        for i in sep_piano_roll3d:
+            piano_roll2d = convert_3d_to_2d(i, 0, self.timestep_len)  # Output is already a tensor
+            lst.append((i, piano_roll2d, composer_name))
 
         return lst
 
@@ -124,7 +115,7 @@ class MaestroDataset(Dataset):
 if __name__ == '__main__':
     md = MaestroDataset('../data/maestro-v3.0.0', 128)
     a = md[0]
-    # print(a)
+    print(a)
     # a = [np.zeros((2, 2)), np.ones((2, 2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2, 2))+np.ones((2,2))]
     # np.save("test", a)
     # with open('test.pickle', 'wb') as f:

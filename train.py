@@ -36,7 +36,7 @@ if __name__ == "__main__":
     # parser.add_argument('--val_data', type=str, required=False)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=0.001)
-    parser.add_argument("--weights_dir", type=str, default=".\\weights\\")
+    parser.add_argument("--weights_dir", type=str, default="./weights/")
     parser.add_argument("--num_epochs", type=int, default=500)
     parser.add_argument('--input_channels', type=int, default=9)
     parser.add_argument('--time_steps', type=int, default=128)
@@ -79,8 +79,8 @@ if __name__ == "__main__":
     # latent_size = (opts.time_steps, 46)
 
     num_chorales = len(train_midi)
-    latent_size = opts.time_steps * 46
-    latents = torch.nn.Embedding(num_chorales, opts.time_steps * 46)
+    latent_size = opts.time_steps * train_midi.pitch_range
+    latents = torch.nn.Embedding(num_chorales, opts.time_steps * train_midi.pitch_range)
     torch.nn.init.normal_(
         latents.weight.data,
         0.0,

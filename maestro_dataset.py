@@ -5,6 +5,8 @@ from torch.utils.data import Dataset, DataLoader
 import pretty_midi
 from convert import convert_3d_to_2d
 from dataset import get_concat_mask, get_mask
+import pickle
+import os
 
 
 class MaestroDataset(Dataset):
@@ -17,7 +19,16 @@ class MaestroDataset(Dataset):
         self.midi_lst, self.composer_lst = self.process_data_from_csv()
         self.composer_map = self.map_composer_name_to_key()
         # This is the array that contains tuples of three elements: 3d_x, 2d_x, and composer label
-        self.piano_roll_by_composer = self.separate_midi_into_classes()
+        if os.path.exists('data.pickle') and os.path.getsize('data.pickle') > 0:
+            with open('data.pickle', 'rb') as f:
+                # Pickle the 'data' dictionary using the highest protocol available.
+                self.piano_roll_by_composer = pickle.load(f)
+        else:
+            self.piano_roll_by_composer = self.separate_midi_into_classes()
+            with open('data.pickle', 'wb') as f:
+                pickle.dump(self.piano_roll_by_composer, f, pickle.HIGHEST_PROTOCOL)
+
+
 
     def __len__(self):
         len(self.piano_roll_by_composer)
@@ -66,7 +77,7 @@ class MaestroDataset(Dataset):
         pm = pretty_midi.PrettyMIDI(self.file_dir + '/' + midi_name)
         temp = []
         for ins in pm.instruments:
-            ins_p = ins.get_piano_roll(fs=10)
+            ins_p = ins.get_piano_roll(fs=5)
             ins_p[ins_p > 0] = 1.0
             total_ts = ins_p.shape[1]
             # cut off the extra length at the end to make it multiple of self.timestep_len if needed
@@ -93,3 +104,14 @@ if __name__ == '__main__':
     md = MaestroDataset('../data/maestro-v3.0.0', 36, 91, 128)
     a = md[0]
     print(a)
+    # a = [np.zeros((2, 2)), np.ones((2, 2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2, 2))+np.ones((2,2))]
+    # np.save("test", a)
+    # with open('test.pickle', 'wb') as f:
+    #     # Pickle the 'data' dictionary using the highest protocol available.
+    #     pickle.dump(a, f, pickle.HIGHEST_PROTOCOL)
+    # with open('data.pickle', 'rb') as f:
+    #     # The protocol version used is detected automatically, so we do not
+    #     # have to specify it.
+    #     b = pickle.load(f)
+    #     print(b)
+    print(os.path.exists('test.pickle'))

@@ -24,7 +24,7 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
             if len(pitch_rel_idx) != 0 and len(pitch_rel_idx[0]) != 0:
                 pitch = min_pitch + pitch_rel_idx[0][0]
             else:
-                pitch = int('nan')
+                pitch = 0
             encoding2d[t, i] = pitch
     return torch.from_numpy(encoding2d)
 

@@ -133,14 +133,3 @@ if __name__ == "__main__":
 
         torch.save(model.state_dict(), os.path.join(weights_path,
                                     f"{opts.model}_latest.pth"))
-
-        # model.eval()
-        #
-        # with tqdm(total=(len(test_midi) - len(test_midi) % opts.batch_size)) as t:
-        #     t.set_description(f'val epoch: {epoch}/{opts.num_epochs - 1}')
-        #     for idx, data in enumerate(test_midi_loader):
-        #         midi, label = data.to(device)
-        #         pred = model(midi)
-        #
-        #         t.update(midi.shape[0])
-        #todo: save intermediate results

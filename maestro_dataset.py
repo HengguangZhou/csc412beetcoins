@@ -6,17 +6,18 @@ import pretty_midi
 from convert import convert_3d_to_2d
 from dataset import get_concat_mask, get_mask
 import pickle
+import json
 import os
 
 
 class MaestroDataset(Dataset):
-    def __init__(self, file_dir, min_pitch, max_pitch, timestep_len):
+    def __init__(self, file_dir, timestep_len):
         self.file_dir = file_dir
         self.timestep_len = timestep_len
-        self.min_pitch = min_pitch
-        self.max_pitch = max_pitch
-        self.pitch_range = self.max_pitch - self.min_pitch + 1
         self.midi_lst, self.composer_lst = self.process_data_from_csv()
+        self.min_pitch = 21
+        self.max_pitch = 108
+        self.pitch_range = self.max_pitch - self.min_pitch + 1
         self.composer_map = self.map_composer_name_to_key()
         # This is the array that contains tuples of three elements: 3d_x, 2d_x, and composer label
         if os.path.exists('data.pickle') and os.path.getsize('data.pickle') > 0:
@@ -28,10 +29,8 @@ class MaestroDataset(Dataset):
             with open('data.pickle', 'wb') as f:
                 pickle.dump(self.piano_roll_by_composer, f, pickle.HIGHEST_PROTOCOL)
 
-
-
     def __len__(self):
-        len(self.piano_roll_by_composer)
+        return len(self.piano_roll_by_composer)
 
     def __getitem__(self, idx):
         info = self.piano_roll_by_composer[idx]
@@ -42,6 +41,29 @@ class MaestroDataset(Dataset):
         label = self.composer_map[composer_name]
 
         return data, oh_data, mask, idx, label
+
+    def find_min_max_pitch(self): # Used to find min and max pitch in the dataset
+        min_pitch = 127
+        max_pitch = 0
+        keep_iter = True
+        for i in self.midi_lst:
+            if keep_iter:
+                pm = pretty_midi.PrettyMIDI(self.file_dir + '/' + i)
+                for ins in pm.instruments:
+                    all_notes = ins.notes
+                    for note in all_notes:
+                        if note.pitch > max_pitch:
+                            max_pitch = note.pitch
+                        if note.pitch < min_pitch:
+                            min_pitch = note.pitch
+                        if min_pitch == 0 and max_pitch == 127:
+                            keep_iter = False
+            else:
+                break
+        print("min_pitch: {}".format(min_pitch))
+        print("max_pitch: {}".format(max_pitch))
+
+        return min_pitch, max_pitch
 
     def process_data_from_csv(self):
         csv = pd.read_csv(self.file_dir+'/maestro-v3.0.0.csv')
@@ -69,7 +91,6 @@ class MaestroDataset(Dataset):
             for i in sep_piano_roll3d:
                 piano_roll2d = convert_3d_to_2d(i, 0, self.timestep_len)  # Output is already a tensor
                 lst.append((i, piano_roll2d, composer_name))
-            print("done one song {}".format(midi_idx))
 
         return lst
 
@@ -101,9 +122,9 @@ class MaestroDataset(Dataset):
 
 
 if __name__ == '__main__':
-    md = MaestroDataset('../data/maestro-v3.0.0', 36, 91, 128)
+    md = MaestroDataset('../data/maestro-v3.0.0', 128)
     a = md[0]
-    print(a)
+    # print(a)
     # a = [np.zeros((2, 2)), np.ones((2, 2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2, 2))+np.ones((2,2))]
     # np.save("test", a)
     # with open('test.pickle', 'wb') as f:
@@ -113,5 +134,12 @@ if __name__ == '__main__':
     #     # The protocol version used is detected automatically, so we do not
     #     # have to specify it.
     #     b = pickle.load(f)
-    #     print(b)
-    print(os.path.exists('test.pickle'))
+    # # print(os.path.exists('test.pickle'))
+    # print("load done")
+
+    # b = [np.zeros((2,2)), np.ones((2,2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2,2))+np.ones((2,2))]
+    #
+    # with open('data.json', 'wb') as f:
+    #     # The protocol version used is detected automatically, so we do not
+    #     # have to specify it.
+    #     json.dump(b, f)

@@ -35,6 +35,11 @@ class MidiDataset(Dataset):
         return data, oh_data, mask, idx
 
     def get_max_min_pitch(self, data):
+        """
+        Get the max and min pitch within data
+        :param data:
+        :return:
+        """
         for seq in data:
             for ts_idx in range(0, len(seq)):
                 ts = seq[ts_idx]
@@ -45,6 +50,11 @@ class MidiDataset(Dataset):
                         self.min_midi_pitch = int(min(ts))
 
     def separate_data(self, data):
+        """
+        Return the data where each element has timestep_len timesteps
+        :param data:
+        :return:
+        """
         datas = []
         for seq in data:
             seq_len = len(seq)
@@ -66,6 +76,11 @@ class MidiDataset(Dataset):
 
 
     def get_midis_array(self, data):
+        """
+        Return a list of the 3-D and 2-D array each representing a piano roll.
+        :param data:
+        :return:
+        """
         oh_midis = []
         midis = []
         for seq in data:
@@ -83,39 +98,6 @@ class MidiDataset(Dataset):
             midis.append(midi)
         return oh_midis, midis
 
-
-    # def get_concat_mask(self, midis):
-    #     all_masks = []
-    #     for midi in midis: # for each file we want a mask of 4x32xP
-    #         temp = []
-    #         for i in range(len(midi)):
-    #             mask = self.get_mask()
-    #             temp.append(mask)
-    #         all_masks.append(np.concatenate(temp, axis=0))
-    #
-    #     return all_masks
-
-    # def get_masked_data(self, midis):
-    #     all_masked_data = []
-    #     for midi in midis:
-    #         temp = []
-    #         for i in midi:
-    #             mask = self.get_mask()
-    #             masked_data = np.multiply(i, mask)
-    #             temp.append(np.concatenate((mask, masked_data), axis=0))
-    #         all_masked_data.append(np.concatenate(temp, axis=0))
-    #
-    #     return all_masked_data
-
-    # def get_mask(self):
-    #     # mask size is 1 x data_len x P
-    #     mask_idx = np.random.choice(self.timestep_len * self.pitch_range, size=np.random.choice(self.timestep_len * self.pitch_range) + 1, replace=False)
-    #     mask = np.zeros(self.timestep_len * self.pitch_range, dtype=np.float32)
-    #     mask[mask_idx] = 1.
-    #     mask = mask.reshape((1, self.timestep_len, self.pitch_range))
-    #
-    #     return mask
-
     def get_min_midi_pitch(self):
         return self.min_midi_pitch
 
@@ -130,7 +112,11 @@ class MidiDataset(Dataset):
 
 
 def get_concat_mask(midi):
-    # want a mask of 4x32xP
+    """
+    return a mask with shape 4 x timestep_len x P
+    :param midi:
+    :return:
+    """
     temp = []
     for i in range(len(midi)):
         temp.append(get_mask(midi))
@@ -139,6 +125,11 @@ def get_concat_mask(midi):
 
 
 def get_mask(midi):
+    """
+    return a random sampled mask with shape 1 x timestep_len x P
+    :param midi:
+    :return:
+    """
     # mask size is 1 x data_len x P
     ins, timestep_len, pitch_range = midi.shape
     mask_idx = np.random.choice(timestep_len * pitch_range,
@@ -156,9 +147,7 @@ if __name__ == '__main__':
 
     for idx, data in itr:
         data, oh_data, mask, data_idx = data
-        # P = pitch range = max_pitch - min_pitch + 1
-        # print(original_data)  # Tensor of 4x128xP
-        # print(mask)  # Tensor of 8xtsxP
-        print(data.shape)  # Should be 4xtsxP
-        print(mask.shape)  # Should be 8xtsxP
+        print(data.shape)  # Should be 4xts
+        print(oh_data.shape)  # Should be 4xtsxP
+        print(mask.shape)  # Should be 4xtsxP
         break

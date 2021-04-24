@@ -15,9 +15,7 @@ import math
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model', type=str, default='coconet')
     parser.add_argument('--data', type=str, required=True)
-    # parser.add_argument('--val_data', type=str, required=False)
     parser.add_argument("--batch_size", type=int, default=16)
     parser.add_argument("--lr", type=float, default=0.001)
     parser.add_argument("--weights_dir", type=str, default="./weights/")
@@ -42,8 +40,7 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    if opts.model == 'coconet':
-        model = coco_decoder(in_channels=9, hidden_channels=opts.time_steps)
+    model = coco_decoder(in_channels=9, hidden_channels=opts.time_steps)
 
     print(f"number of trainable parameters: {sum(p.numel() for p in model.parameters())}")
     model = model.to(device)

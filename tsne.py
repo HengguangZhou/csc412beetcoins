@@ -6,7 +6,7 @@ from torch import nn
 from models.coconet import coco_decoder
 from convert import piano_roll2d_to_midi, convert_3d_to_2d, convert_2d_to_3d
 from dataset import MidiDataset
-from visualization import visualize_hehexd, pad_piano_roll
+from visualization import visualize, pad_piano_roll
 import matplotlib.pyplot as plt
 from tsnecuda import TSNE
 from sklearn.manifold import TSNE

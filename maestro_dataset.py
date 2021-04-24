@@ -5,9 +5,7 @@ from torch.utils.data import Dataset, DataLoader
 import pretty_midi
 from convert import convert_3d_to_2d, midi_to_piano_roll
 from dataset import get_concat_mask, get_mask
-import pickle
-import json
-import os
+import time
 import random
 
 
@@ -20,12 +18,13 @@ class MaestroDataset(Dataset):
         self.max_pitch = 108
         self.pitch_range = self.max_pitch - self.min_pitch + 1
         self.composer_map = self.map_composer_name_to_key()
+        self.midi_to_composer = self.obtain_piano_rolls()
 
     def __len__(self):
-        return len(self.midi_lst)
+        return len(self.midi_to_composer)
 
     def __getitem__(self, idx):
-        info = self.obtain_piano_rolls(self.midi_lst[idx], self.composer_lst[idx])
+        info = self.midi_to_composer[idx]
         # Return the random data segment
         oh_data = torch.from_numpy(info[0]).float()
         data = info[1]
@@ -74,63 +73,53 @@ class MaestroDataset(Dataset):
 
         return composer_map
 
-    def obtain_piano_rolls(self, midi_name, composer_name):
-        # sep_piano_roll3d = self.separate_piano_roll_by_ts(midi_name, composer_name)
-        piano_roll3d = midi_to_piano_roll(self.file_dir+'/'+midi_name, self.min_pitch,
-                                          self.max_pitch, self.timestep_len)
-        # from the list of 3d piano roll, obtain the 2d piano roll
-        piano_roll2d = convert_3d_to_2d(piano_roll3d, 0, self.timestep_len)  # Output is already a tensor
-        info = (piano_roll3d, piano_roll2d, composer_name)
+    def obtain_piano_rolls(self):
+        lst = []
+        for idx in range(0, len(self.midi_lst)):
+            midi_name = self.midi_lst[idx]
+            composer_name = self.composer_lst[idx]
+            piano_roll3d = self.separate_piano_roll_by_ts(midi_name)
+            # from the list of 3d piano rolls, sample one 3d piano roll and convert it to 2d representation
+            piano_roll3d_3 = piano_roll3d
+            if len(piano_roll3d) > 1:
+                piano_roll3d_3 = random.sample(piano_roll3d, 1)
 
-        return info
+            for i in piano_roll3d_3:
+                piano_roll2d = convert_3d_to_2d(i, 0, self.timestep_len)  # Output is already a tensor
+                lst.append((i, piano_roll2d, composer_name))
 
-    # def separate_piano_roll_by_ts(self, midi_name, composer_name):
-    #     pm = pretty_midi.PrettyMIDI(self.file_dir + '/' + midi_name)
-    #     temp = []
-    #     for ins in pm.instruments:
-    #         ins_p = ins.get_piano_roll(fs=5)
-    #         ins_p[ins_p > 0] = 1.0
-    #         total_ts = ins_p.shape[1]
-    #         # cut off the extra length at the end to make it multiple of self.timestep_len if needed
-    #         if total_ts % self.timestep_len != 0:
-    #             ins_p = ins_p[:, 0:total_ts - (total_ts % self.timestep_len)]
-    #         temp.append(ins_p[self.min_pitch:self.max_pitch+1, :].transpose())
-    #
-    #     if len(temp) <= 4:
-    #         final_piano_roll = np.stack(temp, axis=0)
-    #         diff = 4 - len(temp)
-    #         if diff > 0:  # Pad extra layers of zeros for the final piano roll if less than 4 levels
-    #             final_piano_roll = np.concatenate([final_piano_roll,
-    #                                                np.zeros((diff, final_piano_roll.shape[1],
-    #                                                self.pitch_range))], axis=0)
-    #     else:  # More than 4 tracks, so choose 4 tracks only
-    #         final_piano_roll = np.stack(temp[0:4], axis=0)
-    #
-    #     # Split the whole piano roll into chunks of desired length
-    #     ins_p_lst = np.split(final_piano_roll, final_piano_roll.shape[1] // self.timestep_len, axis=1)
-    #
-    #     return ins_p_lst
+        return lst
+
+    def separate_piano_roll_by_ts(self, midi_name):
+        pm = pretty_midi.PrettyMIDI(self.file_dir + '/' + midi_name)
+        temp = []
+        for ins in pm.instruments:
+            ins_p = ins.get_piano_roll(fs=5)
+            ins_p[ins_p > 0] = 1.0
+            total_ts = ins_p.shape[1]
+            # cut off the extra length at the end to make it multiple of self.timestep_len if needed
+            if total_ts % self.timestep_len != 0:
+                ins_p = ins_p[:, 0:total_ts - (total_ts % self.timestep_len)]
+            temp.append(ins_p[self.min_pitch:self.max_pitch+1, :].transpose())
+
+        if len(temp) <= 4:
+            final_piano_roll = np.stack(temp, axis=0)
+            diff = 4 - len(temp)
+            if diff > 0:  # Pad extra layers of zeros for the final piano roll if less than 4 levels
+                final_piano_roll = np.concatenate([final_piano_roll,
+                                                   np.zeros((diff, final_piano_roll.shape[1], self.pitch_range))], axis=0)
+        else:  # More than 4 tracks, so choose 4 tracks only
+            final_piano_roll = np.stack(temp[0:4], axis=0)
+
+        # Split the whole piano roll into chunks of desired length
+        ins_p_lst = np.split(final_piano_roll, final_piano_roll.shape[1] // self.timestep_len, axis=1)
+
+        return ins_p_lst
 
 
 if __name__ == '__main__':
+    start_time = time.time()
     md = MaestroDataset('../data/maestro-v3.0.0', 128)
     a = md[0]
-    print(a)
-    # a = [np.zeros((2, 2)), np.ones((2, 2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2, 2))+np.ones((2,2))]
-    # np.save("test", a)
-    # with open('test.pickle', 'wb') as f:
-    #     # Pickle the 'data' dictionary using the highest protocol available.
-    #     pickle.dump(a, f, pickle.HIGHEST_PROTOCOL)
-    # with open('data.pickle', 'rb') as f:
-    #     # The protocol version used is detected automatically, so we do not
-    #     # have to specify it.
-    #     b = pickle.load(f)
-    # # print(os.path.exists('test.pickle'))
-    # print("load done")
-
-    # b = [np.zeros((2,2)), np.ones((2,2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2,2))+np.ones((2,2))]
-    #
-    # with open('data.json', 'wb') as f:
-    #     # The protocol version used is detected automatically, so we do not
-    #     # have to specify it.
-    #     json.dump(b, f)
+    print("--- %s seconds ---" % (time.time() - start_time))
+    # print(a)

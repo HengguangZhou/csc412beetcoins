@@ -56,7 +56,7 @@ def midi_to_piano_roll(midi_file, min_pitch, max_pitch, timestep_size=32):
     temp = []
     pitch_range = max_pitch - min_pitch + 1
     for ins in md.instruments:
-        ins_p = ins.get_piano_roll(fs=10)
+        ins_p = ins.get_piano_roll(fs=5)
         ins_p[ins_p > 0] = 1.0
         if ins_p.shape[1] > timestep_size:  # Want to truncate the pianoroll to desired length of timestep
             # Truncate by using a random starting index
@@ -83,7 +83,6 @@ def midi_to_piano_roll(midi_file, min_pitch, max_pitch, timestep_size=32):
 
 # This function is from
 # https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
-
 def piano_roll2d_to_midi(piece):
     """
     piece is a an array of shape (T, 4) for some T.

@@ -127,11 +127,3 @@ if __name__ == "__main__":
     x = tsne.fit_transform(latents.detach().cpu()[:])
     plt.scatter(x[:, 0], x[:, 1], c=labels[:])
     plt.show()
-    # sns.scatterplot(
-    #     x="tsne-2d-one", y="tsne-2d-two",
-    #     hue="y",
-    #     palette=sns.color_palette("hls", 10),
-    #     data=df_subset,
-    #     legend="full",
-    #     alpha=0.3
-    # )

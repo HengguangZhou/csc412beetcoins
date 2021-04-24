@@ -6,9 +6,6 @@ import pretty_midi
 from convert import convert_3d_to_2d, midi_to_piano_roll
 from dataset import get_concat_mask, get_mask
 import time
-import pickle
-import json
-import os
 import random
 
 
@@ -21,15 +18,7 @@ class MaestroDataset(Dataset):
         self.max_pitch = 108
         self.pitch_range = self.max_pitch - self.min_pitch + 1
         self.composer_map = self.map_composer_name_to_key()
-
-        if not os.path.exists('data.pickle'):
-            self.midi_to_composer = self.obtain_piano_rolls()
-            with open('data.pickle', 'wb') as f:
-                # Pickle the 'data' dictionary using the highest protocol available.
-                pickle.dump(self.midi_to_composer, f, pickle.HIGHEST_PROTOCOL)
-        else:
-            with open('data.pickle', 'rb') as f:
-                self.midi_to_composer = pickle.load(f)
+        self.midi_to_composer = self.obtain_piano_rolls()
 
     def __len__(self):
         return len(self.midi_to_composer)
@@ -90,16 +79,14 @@ class MaestroDataset(Dataset):
             midi_name = self.midi_lst[idx]
             composer_name = self.composer_lst[idx]
             piano_roll3d = self.separate_piano_roll_by_ts(midi_name)
-            # from the list of 3d piano roll, obtain 5 2d piano rolls
+            # from the list of 3d piano rolls, sample one 3d piano roll and convert it to 2d representation
             piano_roll3d_3 = piano_roll3d
-            if len(piano_roll3d) > 2:
-                piano_roll3d_3 = random.sample(piano_roll3d, 2)
+            if len(piano_roll3d) > 1:
+                piano_roll3d_3 = random.sample(piano_roll3d, 1)
 
             for i in piano_roll3d_3:
                 piano_roll2d = convert_3d_to_2d(i, 0, self.timestep_len)  # Output is already a tensor
                 lst.append((i, piano_roll2d, composer_name))
-
-            print("done {}".format(idx))
 
         return lst
 
@@ -120,8 +107,7 @@ class MaestroDataset(Dataset):
             diff = 4 - len(temp)
             if diff > 0:  # Pad extra layers of zeros for the final piano roll if less than 4 levels
                 final_piano_roll = np.concatenate([final_piano_roll,
-                                                   np.zeros((diff, final_piano_roll.shape[1],
-                                                   self.pitch_range))], axis=0)
+                                                   np.zeros((diff, final_piano_roll.shape[1], self.pitch_range))], axis=0)
         else:  # More than 4 tracks, so choose 4 tracks only
             final_piano_roll = np.stack(temp[0:4], axis=0)
 
@@ -137,21 +123,3 @@ if __name__ == '__main__':
     a = md[0]
     print("--- %s seconds ---" % (time.time() - start_time))
     # print(a)
-    # a = [np.zeros((2, 2)), np.ones((2, 2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2, 2))+np.ones((2,2))]
-    # np.save("test", a)
-    # with open('test.pickle', 'wb') as f:
-    #     # Pickle the 'data' dictionary using the highest protocol available.
-    #     pickle.dump(a, f, pickle.HIGHEST_PROTOCOL)
-    # with open('data.pickle', 'rb') as f:
-    #     # The protocol version used is detected automatically, so we do not
-    #     # have to specify it.
-    #     b = pickle.load(f)
-    # # print(os.path.exists('test.pickle'))
-    # print("load done")
-
-    # b = [np.zeros((2,2)), np.ones((2,2)), np.ones((2,2))+np.ones((2,2)), np.ones((2,2))+np.ones((2,2))+np.ones((2,2))]
-    #
-    # with open('data.json', 'wb') as f:
-    #     # The protocol version used is detected automatically, so we do not
-    #     # have to specify it.
-    #     json.dump(b, f)

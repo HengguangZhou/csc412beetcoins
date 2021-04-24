@@ -1,12 +1,10 @@
 import argparse
-import os
 import torch
 import numpy as np
-from torch import nn
 from models.coconet import coco_decoder
 from convert import piano_roll2d_to_midi, convert_3d_to_2d, convert_2d_to_3d
 from dataset import MidiDataset
-from visualization import visualize_hehexd, pad_piano_roll
+from visualization import visualize, pad_piano_roll
 import matplotlib.pyplot as plt
 
 def get_concat_mask(T, P):
@@ -107,5 +105,5 @@ if __name__ == "__main__":
     piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d2.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style2.mid')
 
     padded_midi2 = pad_piano_roll(pred, midis.get_min_midi_pitch(), midis.get_max_midi_pitch())
-    visualize_hehexd(padded_midi2)
+    visualize(padded_midi2)
     plt.show()

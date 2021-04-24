@@ -1,17 +1,9 @@
 import os
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-from midi2audio import FluidSynth
-import pretty_midi
-from IPython.display import Audio, display
-from dataset import MidiDataset
-import numpy as np
-import torch
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 from convert import *
-from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
-from matplotlib.figure import Figure
 import io
 import cv2
 from PIL import Image
@@ -19,11 +11,11 @@ from PIL import Image
 
 # This function is adapted from
 # https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
-def visualize_hehexd(midi_data):
+def visualize(midi_data):
     """
     Visualize each instrument's piano roll
-    :param midi_data_hehexd: 3d tensor of size 4x128xP representing the encoding of the piano roll of the midi file
-    :return: idk
+    :param midi_data: 3d tensor of size 4x128xP representing the encoding of the piano roll of the midi file
+    :return: Figure and axis of the plot
     """
     soprano = midi_data[0].transpose(0, 1)
     alto = midi_data[1].transpose(0, 1)

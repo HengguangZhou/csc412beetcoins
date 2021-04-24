@@ -82,7 +82,7 @@ if __name__ == "__main__":
     model.load_state_dict(torch.load(opts.weights, map_location=device), strict=False)
     model.eval()
 
-    md = MidiDataset('../jsb/jsb-chorales-16th.pkl',timestep_len=opts.time_steps, fold='train')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl', timestep_len=opts.time_steps, fold='train')
 
     test_midi2d, test_midi3d, _, _ = md[0]
     style_midi2d, style_midi3d, _, _ = md[100]
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         first_row = col_plot
 
     # rest
-    for r in range(1,len(values)):
+    for r in range(1, len(values)):
         for c in range(len(values)):
             beta = values[r]
             alpha = values[c]
@@ -133,5 +133,3 @@ if __name__ == "__main__":
 
     test = Image.fromarray(first_row, 'RGB')
     test.show()
-
-

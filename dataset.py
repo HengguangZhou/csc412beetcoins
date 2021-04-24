@@ -5,7 +5,7 @@ import pickle
 
 
 class MidiDataset(Dataset):
-    def __init__(self, data_path, fold='train', timestep_len = 32, all_comb = False):
+    def __init__(self, data_path, fold='train', timestep_len=32, all_comb=False):
         """
         :param data_path: file name of the pickle data to load midi info from
         :param fold: either 'train', 'valid', or 'test'
@@ -21,9 +21,6 @@ class MidiDataset(Dataset):
         self.get_max_min_pitch(data[self.fold])
         self.pitch_range = self.max_midi_pitch - self.min_midi_pitch + 1
         self.oh_midi_datas, self.midi_datas = self.get_midis_array(self.separate_data(data[self.fold]))
-
-        # self.midi_masks = self.get_concat_mask(self.midi_datas)
-        # self.processed_midi_datas = self.get_masked_data(self.midi_datas)
 
     def __len__(self):
         return len(self.midi_datas)
@@ -61,19 +58,19 @@ class MidiDataset(Dataset):
             if self.all_comb:
                 i = 0
                 while i + self.timestep_len <= seq_len:
-                    datas.append(seq[i:i+self.timestep_len])
+                    datas.append(seq[i:i + self.timestep_len])
                     i += 1
             else:
                 if seq_len > self.timestep_len:
                     starting_idx = np.random.randint(0, seq_len - self.timestep_len + 1)
-                    timestep_seq = seq[starting_idx:starting_idx+self.timestep_len]
+                    timestep_seq = seq[starting_idx:starting_idx + self.timestep_len]
                 else:
                     timestep_seq = seq
                     while len(timestep_seq) < self.timestep_len:
-                        timestep_seq.append((self.min_midi_pitch, self.min_midi_pitch, self.min_midi_pitch, self.min_midi_pitch))  # Pad the sequence to desired timestep length with 0
+                        timestep_seq.append((self.min_midi_pitch, self.min_midi_pitch, self.min_midi_pitch,
+                                             self.min_midi_pitch))  # Pad the sequence to desired timestep length with 0
                 datas.append(timestep_seq)
         return datas
-
 
     def get_midis_array(self, data):
         """

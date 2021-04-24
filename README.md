@@ -13,5 +13,5 @@ python train.py --data 'path to data directory/JSB-Chorales-dataset/jsb-chorales
 ### Testing
 After training, you can evaluate the reconstruction performance by the following code:
 ```
-python test.py --model coconet --target_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl' --style_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl'
+python test.py --target_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl' --style_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl'
 ```

@@ -15,3 +15,4 @@ After training, you can evaluate the reconstruction performance by the following
 ```
 python test.py --target_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl' --style_midi '/content/JSB-Chorales-dataset/jsb-chorales-16th.pkl'
 ```
+It will randomly pick 3 songs from the dataset and generate 4 outputs: the masked original song, the generated song, and the two style songs.

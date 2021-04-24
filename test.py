@@ -79,12 +79,11 @@ if __name__ == "__main__":
 
     midis = MidiDataset(opts.target_midi, timestep_len=opts.time_steps, fold='train')
 
-    song_idx = np.random.choice(len(midis), size=(3, ), replace=False)
+    song_idx = np.random.choice(len(midis), size=(2, ), replace=False)
 
     test_midi2d, test_midi3d, _, _ = midis[song_idx[0]]
     style_midi2d, style_midi3d, _, _ = midis[song_idx[1]]
-    style_midi2d2, style_midi3d2, _, _ = midis[song_idx[2]]
-    print(f"original: {song_idx[0]}, style1:{song_idx[1]}, style2: {song_idx[2]}")
+    print(f"original: {song_idx[0]}, style:{song_idx[1]}")
     T = test_midi3d.shape[1]
     P = test_midi3d.shape[2]
     mask = torch.ones(test_midi3d.shape)

@@ -43,7 +43,7 @@ class coco_decoder(nn.Module):
     def forward(self, x, mask, latent, testing=False):
         x *= 1. - mask
         if testing:
-            masked_original = piano_roll2d_to_midi(convert_3d_to_2d(x.detach().clone().squeeze(0).numpy(), 36))
+            masked_original = piano_roll2d_to_midi(convert_3d_to_2d(x.detach().clone().squeeze(0).numpy(), 36, timestep_size=128))
             masked_original.save("original.mid")
         shape = x.shape
         latent = latent.reshape(shape[0], -1, shape[2], shape[3])

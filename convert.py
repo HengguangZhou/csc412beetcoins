@@ -15,7 +15,7 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     :param encoding3d: 3d tensor encoding of the midi, a tensor of shape 4xtimestep_sizexP
     :return: array of shape (T, 4), where T=timestep_size is the time
     """
-    ins, time, pitch = encoding3d.shape
+    ins, time, _ = encoding3d.shape
     encoding2d = np.zeros((timestep_size, ins))
     for i in range(0, ins):
         for t in range(0, time):
@@ -24,7 +24,7 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
             if len(pitch_rel_idx) != 0 and len(pitch_rel_idx[0]) != 0:
                 pitch = min_pitch + pitch_rel_idx[0][0]
             else:
-                pitch = int('nan')
+                pitch = 0
             encoding2d[t, i] = pitch
     return torch.from_numpy(encoding2d)
 

@@ -66,6 +66,7 @@ if __name__ == "__main__":
     parser.add_argument('--style_midi', type=str, default=None)
     parser.add_argument("--weights", type=str, default="./weights/experiment1.pth")
     parser.add_argument('--input_channels', type=int, default=9)
+    parser.add_argument('--time_steps', type=int, default=128)
 
     opts = parser.parse_args()
 
@@ -74,41 +75,36 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    if opts.model == 'coconet':
-        model = coco_decoder(opts.input_channels)
-    else:
-        model = coco_decoder(opts.input_channels)
+    model = coco_decoder(opts.input_channels, hidden_channels=opts.time_steps)
 
     model.load_state_dict(torch.load(opts.weights, map_location=device), strict=False)
     model.eval()
 
-    midis = MidiDataset(opts.target_midi, fold='train')
+    midis = MidiDataset(opts.target_midi, timestep_len=opts.time_steps, fold='train')
 
-    test_midi2d, test_midi3d, _, _ = midis[20000]
-    style_midi2d, style_midi3d, _, _ = midis[10005]
-    style_midi2d2, style_midi3d2, _, _ = midis[4000]
-    # print(test_midi2d.shape)
-    # print(test_midi3d.shape)
+    song_idx = np.random.choice(len(midis), size=(3, ), replace=False)
+
+    test_midi2d, test_midi3d, _, _ = midis[song_idx[0]]
+    style_midi2d, style_midi3d, _, _ = midis[song_idx[1]]
+    style_midi2d2, style_midi3d2, _, _ = midis[song_idx[2]]
+    print(f"original: {song_idx[0]}, style1:{song_idx[1]}, style2: {song_idx[2]}")
     T = test_midi3d.shape[1]
     P = test_midi3d.shape[2]
     mask = torch.ones(test_midi3d.shape)
     mask[1:3, :, :] = 0
-    # masked_3d = test_midi3d.clone() * (1 - mask)
     mask = mask.unsqueeze(0)
 
 
     print(midis.get_min_midi_pitch())
     latent1 = extract_latent(style_midi2d, style_midi3d, model)
-    latent2 = extract_latent(style_midi2d2, style_midi3d2, model)
-    pred = model(test_midi3d.unsqueeze(0), mask, latent1 + latent2, testing=True)
-    # pred = model((test_midi3d * (1 - mask)).unsqueeze(0), 0, latent)
-    pred = torch.round(pred.squeeze(0).detach())
-    mido_result = piano_roll2d_to_midi(convert_3d_to_2d(pred.numpy(), midis.get_min_midi_pitch()))
+    # latent2 = extract_latent(style_midi2d2, style_midi3d2, model)
+    pred = model(test_midi3d.unsqueeze(0), mask, latent1, testing=True)
+
+    pred = torch.round(torch.nn.Softmax(dim=-1)(pred).squeeze(0).detach())
+    mido_result = piano_roll2d_to_midi(convert_3d_to_2d(pred.numpy(), midis.get_min_midi_pitch(), timestep_size=128))
     mido_result.save('result.mid')
-    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch())).save('style1.mid')
-    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d2.numpy(), midis.get_min_midi_pitch())).save('style2.mid')
-    # masked_original = piano_roll2d_to_midi(convert_3d_to_2d(masked_3d.detach().numpy(), midis.get_min_midi_pitch()))
-    # masked_original.save("original.mid")
+    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style1.mid')
+    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d2.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style2.mid')
 
     padded_midi2 = pad_piano_roll(pred, midis.get_min_midi_pitch(), midis.get_max_midi_pitch())
     visualize_hehexd(padded_midi2)

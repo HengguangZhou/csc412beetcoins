@@ -29,8 +29,7 @@ if __name__ == "__main__":
 
     writer = SummaryWriter()
 
-    weights_path = os.path.join(opts.weights_dir,
-                                opts.model)
+    weights_path = opts.weights_dir
 
     if not os.path.exists(weights_path):
         os.mkdir(weights_path)

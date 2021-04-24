@@ -6,6 +6,7 @@ import pretty_midi
 import random
 
 
+# Adapted from https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
 def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     """
     Encoding3d is a an array of shape 4xtimestep_sizexP for some P.
@@ -29,6 +30,7 @@ def convert_3d_to_2d(encoding3d, min_pitch, timestep_size=32):
     return torch.from_numpy(encoding2d)
 
 
+# Adapted from https://github.com/kevindonoghue/coconet-pytorch/blob/master/coconet.ipynb?fbclid=IwAR3XEObsWdDMqocQX5L_lAHACqQG8wc1WURNY1XeUAAhQZpgV42qc0l_7fM
 def convert_2d_to_3d(encoding2d, min_pitch, pitch_range, timestep_size=32):
     """
     Encoding2d is a an array of shape IxT (4xtimestep_size) for some P where the (i,j)th entry of the array

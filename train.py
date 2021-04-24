@@ -12,22 +12,6 @@ import midi2audio
 from models.coconet import coco_decoder
 import math
 
-# Adapted from https://discuss.pytorch.org/t/how-to-retrieve-the-sample-indices-of-a-mini-batch/7948/18
-def dataset_with_indices(cls):
-
-    def __getitem__(self, index):
-        data, target = cls.__getitem__(self, index)
-        return data, target, index
-    return type(cls.__name__, (cls,), {'__getitem__': __getitem__, })
-
-# Adapted from https://github.com/facebookresearch/DeepSDF/blob/master/reconstruct.py
-def adjust_learning_rate(
-    initial_lr, optimizer, num_iterations, decreased_by, adjust_lr_every
-):
-    lr = initial_lr * ((1 / decreased_by) ** (num_iterations // adjust_lr_every))
-    for param_group in optimizer.param_groups:
-        param_group["lr"] = lr
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

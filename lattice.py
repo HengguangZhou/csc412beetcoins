@@ -11,7 +11,7 @@ from PIL import Image
 import matplotlib.pyplot as plt
 
 
-def extract_latent(x, oh_x, model, iter=1):
+def extract_latent(x, oh_x, model, iter=500):
     T = oh_x.shape[1]
     P = oh_x.shape[2]
     latent = torch.zeros(T, P)
@@ -69,6 +69,7 @@ if __name__ == "__main__":
     # parser.add_argument('--style_midi', type=str, default=None)
     parser.add_argument("--weights", type=str, default="./weights/experiment1.pth")
     parser.add_argument('--input_channels', type=int, default=9)
+    parser.add_argument('--time_steps', type=int, default=128)
 
     opts = parser.parse_args()
 
@@ -77,19 +78,23 @@ if __name__ == "__main__":
     else:
         device = torch.device("cpu")
 
-    model = coco_decoder(9)
+    model = coco_decoder(opts.input_channels, hidden_channels=opts.time_steps)
     model.load_state_dict(torch.load(opts.weights, map_location=device), strict=False)
     model.eval()
 
-    md = MidiDataset('../jsb/jsb-chorales-16th.pkl')
+    md = MidiDataset('../jsb/jsb-chorales-16th.pkl',timestep_len=opts.time_steps, fold='train')
 
-    values = [0, 0.2,0.4, 0.6, 0.8, 1]
-    test_midi2d, test_midi3d, mask, _ = md[0]
-    mask[1:3, :, :] = 0
+    test_midi2d, test_midi3d, _, _ = md[0]
+    style_midi2d, style_midi3d, _, _ = md[100]
+    style_midi2d2, style_midi3d2, _, _ = md[200]
+    style_midi2d3, style_midi3d3, _, _ = md[150]
+    values = [0, 0.2, 0.4, 0.6, 0.8, 1]
+    mask = torch.ones(test_midi3d.shape)
+    mask[0, :, :] = 0
     mask = mask.unsqueeze(0)
-    latent_a = extract_latent(test_midi2d, test_midi3d, model)
-    latent_b = extract_latent(test_midi2d, test_midi3d, model)
-    latent_c = extract_latent(test_midi2d, test_midi3d, model)
+    latent_a = extract_latent(style_midi2d, style_midi3d, model)
+    latent_b = extract_latent(style_midi2d2, style_midi3d2, model)
+    latent_c = extract_latent(style_midi2d3, style_midi3d3, model)
 
     # first row
 

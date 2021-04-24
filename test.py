@@ -61,7 +61,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--model', type=str, default='coconet')
     parser.add_argument('--target_midi', type=str, required=True)
-    parser.add_argument('--style_midi', type=str, default=None)
     parser.add_argument("--weights", type=str, default="./weights/experiment1.pth")
     parser.add_argument('--input_channels', type=int, default=9)
     parser.add_argument('--time_steps', type=int, default=128)
@@ -95,14 +94,12 @@ if __name__ == "__main__":
 
     print(midis.get_min_midi_pitch())
     latent1 = extract_latent(style_midi2d, style_midi3d, model)
-    # latent2 = extract_latent(style_midi2d2, style_midi3d2, model)
     pred = model(test_midi3d.unsqueeze(0), mask, latent1, testing=True)
 
     pred = torch.round(torch.nn.Softmax(dim=-1)(pred).squeeze(0).detach())
     mido_result = piano_roll2d_to_midi(convert_3d_to_2d(pred.numpy(), midis.get_min_midi_pitch(), timestep_size=128))
     mido_result.save('result.mid')
-    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style1.mid')
-    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d2.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style2.mid')
+    piano_roll2d_to_midi(convert_3d_to_2d(style_midi3d.numpy(), midis.get_min_midi_pitch(), timestep_size=128)).save('style.mid')
 
     padded_midi2 = pad_piano_roll(pred, midis.get_min_midi_pitch(), midis.get_max_midi_pitch())
     visualize(padded_midi2)
